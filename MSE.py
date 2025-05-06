@@ -25,7 +25,11 @@ def calculate_mse(y1, y2, sr1, sr2, target_sr):
     if S1_db_voice.shape != S2_db_voice.shape:
         scale_factor = S2_db_voice.shape[1] / S1_db_voice.shape[1]
         S1_db_voice = zoom(S1_db_voice, (1, scale_factor), order=1)
-    mse = np.mean((S1_db_voice - S2_db_voice) ** 2)
+    try:
+        mse = np.mean((S1_db_voice - S2_db_voice) ** 2)
+    except Exception as e:
+        mse = None
+        print(f"Error calculating MSE", {e})
 
     return mse
 
@@ -36,5 +40,4 @@ def MSE(file1, file2):
     mse = calculate_mse(y1, y2, sr1, sr2, target_sr)
     if mse is None:
         mse = 'N/A'
-    
     return mse

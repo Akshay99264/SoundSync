@@ -125,6 +125,8 @@ class AudioComparerApp:
             return {"PESQ score" : pesq_score}
         elif parameter == "MSE (Mean Square Error)":
             mse_score = MSE(file1, file2)
+            if mse_score == 'N/A':
+                return {"MSE Score": "Error calculating MSE"}
             return {"MSE": mse_score}
         elif parameter == "STOI (Short-Time Objective Intelligibility)":
             stoi_score = STOI(file1, file2)
