@@ -1,0 +1,135 @@
+import tkinter as tk
+from tkinter import filedialog, ttk, messagebox
+from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
+import matplotlib.pyplot as plt
+import librosa
+import librosa.display
+from preprocessingAudio import preprocess_audio
+
+class AudioComparerApp:
+    def __init__(self, root):
+        self.root = root
+        self.root.title("Audio Comparison Tool")
+        self.root.geometry("1000x600")
+
+        self.file1 = None
+        self.file2 = None
+
+        # Grid layout for root
+        self.root.columnconfigure(0, weight=3)  # Left panel
+        self.root.columnconfigure(1, weight=7)  # Right panel
+        self.root.rowconfigure(0, weight=1)
+
+        # Left Frame (30%)
+        self.left_frame = ttk.Frame(self.root, padding=15)
+        self.left_frame.grid(row=0, column=0, sticky="nsew")
+
+        # Right Frame (70%) divided into 3 rows
+        self.right_frame = ttk.Frame(self.root, padding=15)
+        self.right_frame.grid(row=0, column=1, sticky="nsew")
+        self.right_frame.rowconfigure(0, weight=1)  # waveform 1 (25%)
+        self.right_frame.rowconfigure(1, weight=1)  # waveform 2 (25%)
+        self.right_frame.rowconfigure(2, weight=2)  # result area (50%)
+        self.right_frame.columnconfigure(0, weight=1)
+
+        # Canvas for Waveform 1
+        self.fig1, self.ax1 = plt.subplots(figsize=(6, 2))
+        self.canvas1 = FigureCanvasTkAgg(self.fig1, master=self.right_frame)
+        self.canvas1.get_tk_widget().grid(row=0, column=0, sticky="nsew")
+
+        # Canvas for Waveform 2
+        self.fig2, self.ax2 = plt.subplots(figsize=(6, 2))
+        self.canvas2 = FigureCanvasTkAgg(self.fig2, master=self.right_frame)
+        self.canvas2.get_tk_widget().grid(row=1, column=0, sticky="nsew")
+
+        # Result area (text box)
+        self.result_box = tk.Text(self.right_frame, height=10, wrap='word', font=("Courier", 10))
+        self.result_box.grid(row=2, column=0, sticky="nsew", pady=(10, 0))
+        self.result_box.insert("1.0", "Results will appear here after comparison...\n")
+        self.result_box.config(state='disabled')
+
+        # Left Panel Controls
+        ttk.Label(self.left_frame, text="Audio File 1:", font=("Arial", 10, "bold")).pack(anchor='w', pady=(0, 5))
+        ttk.Button(self.left_frame, text="Browse File 1", command=self.load_file1).pack(fill='x', pady=5)
+
+        ttk.Label(self.left_frame, text="Audio File 2:", font=("Arial", 10, "bold")).pack(anchor='w', pady=(15, 5))
+        ttk.Button(self.left_frame, text="Browse File 2", command=self.load_file2).pack(fill='x', pady=5)
+
+        ttk.Label(self.left_frame, text="Select Parameter:", font=("Arial", 10, "bold")).pack(anchor='w', pady=(20, 5))
+        self.parameters = ["All", "PESQ (Perceptual Evaluation of Speech Quality)", "MSE (Mean Square Error)", "STOI (Short-Time Objective Intelligibility)", "WER (Word Error Rate)", "CER (Character Error Rate)"]
+        self.selected_param = tk.StringVar(value=self.parameters[0])
+        self.dropdown = ttk.Combobox(self.left_frame, values=self.parameters, textvariable=self.selected_param, state="readonly")
+        self.dropdown.pack(fill='x', pady=5)
+
+        ttk.Button(self.left_frame, text="Compare", command=self.compare).pack(fill='x', pady=(30, 5))
+
+    def load_file1(self):
+        self.file1 = filedialog.askopenfilename(
+            title="Select Audio File 1",
+            filetypes=[("Audio Files", "*.wav *.mp3 *.flac"), ("All Files", "*.*")]
+        )
+        if self.file1:
+            self.plot_waveform(self.file1, self.ax1, self.canvas1, "Waveform: File 1")
+
+    def load_file2(self):
+        self.file2 = filedialog.askopenfilename(
+            title="Select Audio File 2",
+            filetypes=[("Audio Files", "*.wav *.mp3 *.flac"), ("All Files", "*.*")]
+        )
+        if self.file2:
+            self.plot_waveform(self.file2, self.ax2, self.canvas2, "Waveform: File 2")
+
+    def plot_waveform(self, file_path, ax, canvas, title):
+        try:
+            y, sr = librosa.load(file_path, sr=None)
+            ax.clear()
+            librosa.display.waveshow(y, sr=sr, ax=ax, color='steelblue')
+            ax.set_title(title)
+            ax.set_xlabel("Time")
+            ax.set_ylabel("Amplitude")
+            canvas.draw()
+        except Exception as e:
+            messagebox.showerror("Error", f"Error loading audio: {e}")
+
+    def compare(self):
+        if not self.file1 or not self.file2:
+            messagebox.showerror("Missing File", "Please select both audio files.")
+            return
+        file1 = preprocess_audio(self.file1)
+        file2 = preprocess_audio(self.file2)
+        param = self.selected_param.get()
+        results = self.compare_audio(file1, file2, param)
+
+        self.result_box.config(state='normal')
+        self.result_box.delete("1.0", tk.END)
+        self.result_box.insert("1.0", f"Comparison Results ({param}):\n\n")
+        for k, v in results.items():
+            self.result_box.insert(tk.END, f"{k}: {v}\n")
+        self.result_box.config(state='disabled')
+
+    def compare_audio(self, file1, file2, parameter):  
+        if parameter == "All":
+            return {
+                "Pitch Similarity": "85%",
+                "Loudness Match": "78%",
+                "Duration Match": "92%",
+                "Spectral Overlap": "88%"
+            }
+        elif parameter == "PESQ (Perceptual Evaluation of Speech Quality)":
+            return {"PESQ": "85%"}
+        elif parameter == "MSE (Mean Square Error)":
+            return {"MSE": "78%"}
+        elif parameter == "STOI (Short-Time Objective Intelligibility)":
+            return {"STOI": "92%"}
+        elif parameter == "WER (Word Error Rate)":
+            return {"WER": "88%"}
+        elif parameter == "CER (Character Error Rate)":
+            return {"CER":"88%"}
+        else:
+            return {"Error": "Unknown parameter"}
+
+
+if __name__ == "__main__":
+    root = tk.Tk()
+    app = AudioComparerApp(root)
+    root.mainloop()
