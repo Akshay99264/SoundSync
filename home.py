@@ -13,7 +13,10 @@ class AudioComparerApp:
     def __init__(self, root):
         self.root = root
         self.root.title("Audio Comparison Tool")
-        self.root.geometry("1000x600")
+        root.geometry(f"{root.winfo_screenwidth()}x{root.winfo_screenheight()}")
+
+        close_button = tk.Button(root, text="X", command=root.destroy, font=("Arial", 16))
+        close_button.place(x=8, y=8)
 
         self.file1 = None
         self.file2 = None
