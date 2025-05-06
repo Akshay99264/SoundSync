@@ -5,7 +5,9 @@ import matplotlib.pyplot as plt
 import librosa
 import librosa.display
 from preprocessingAudio import preprocess_audio
-
+from PESQ import PESQ
+from MSE import MSE
+from STOI import STOI
 class AudioComparerApp:
     def __init__(self, root):
         self.root = root
@@ -109,18 +111,24 @@ class AudioComparerApp:
 
     def compare_audio(self, file1, file2, parameter):  
         if parameter == "All":
+            pesq_score = PESQ(file1, file2)
+            mse_score = MSE(file1, file2)
+            stoi_score = STOI(file1, file2)
             return {
-                "Pitch Similarity": "85%",
-                "Loudness Match": "78%",
-                "Duration Match": "92%",
+                "PESQ score": pesq_score,
+                "MSE score": mse_score,
+                "STOI score": stoi_score,
                 "Spectral Overlap": "88%"
             }
         elif parameter == "PESQ (Perceptual Evaluation of Speech Quality)":
-            return {"PESQ": "85%"}
+            pesq_score = PESQ(file1, file2)
+            return {"PESQ score" : pesq_score}
         elif parameter == "MSE (Mean Square Error)":
-            return {"MSE": "78%"}
+            mse_score = MSE(file1, file2)
+            return {"MSE": mse_score}
         elif parameter == "STOI (Short-Time Objective Intelligibility)":
-            return {"STOI": "92%"}
+            stoi_score = STOI(file1, file2)
+            return {"STOI": stoi_score}
         elif parameter == "WER (Word Error Rate)":
             return {"WER": "88%"}
         elif parameter == "CER (Character Error Rate)":
