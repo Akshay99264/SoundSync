@@ -1,0 +1,2 @@
+# Evaluation-of-Audio-Quality-and-Speech-Intelligibility-Using-PESQ-MSE-STOI-WER-and-CER-Metrics
+This project compares audio quality and intelligibility using standardized metrics: PESQ, MSE, STOI, WER, and CER. It evaluates the impact of audio processing techniques like noise removal and enhancement, providing insights for improving speech quality in applications like VoIP and speech recognition systems.
