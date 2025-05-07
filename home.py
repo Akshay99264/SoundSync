@@ -10,7 +10,7 @@ from MSE import MSE
 from STOI import STOI
 from Details import find_details
 from extractSpeech import extractSpeech
-from WER import WER
+from WER_CER import WER, CER
 
 class AudioComparerApp:
     def __init__(self, root):
@@ -101,7 +101,7 @@ class AudioComparerApp:
         ttk.Button(self.left_frame, text="Browse File 2", command=self.load_file2).pack(fill='x', pady=5)
 
         ttk.Label(self.left_frame, text="Select Parameter:", font=("Arial", 10, "bold")).pack(anchor='w', pady=(20, 5))
-        self.parameters = ["All", "PESQ (Perceptual Evaluation of Speech Quality)", "MSE (Mean Square Error)", "STOI (Short-Time Objective Intelligibility)", "WER (Word Error Rate)", "CER (Character Error Rate)"]
+        self.parameters = ["All", "PESQ (Perceptual Evaluation of Speech Quality)", "MSE (Mean Square Error)", "STOI (Short-Time Objective Intelligibility)", "WER (Word Error Rate), CER (Character Error Rate)"]
         self.selected_param = tk.StringVar(value=self.parameters[0])
         self.dropdown = ttk.Combobox(self.left_frame, values=self.parameters, textvariable=self.selected_param, state="readonly")
         self.dropdown.pack(fill='x', pady=5)
@@ -188,11 +188,19 @@ class AudioComparerApp:
             pesq_score = PESQ(file1, file2)
             mse_score = MSE(file1, file2)
             stoi_score = STOI(file1, file2)
+            extracted_string_1 = extractSpeech(file1)
+            extracted_string_2 = extractSpeech(file2)
+            self.displayString(extracted_string_1, self.audio_detail_box_1, 1)
+            self.displayString(extracted_string_2,self.audio_detail_box_2, 2)
+            wer_score, quality = WER(extracted_string_1, extracted_string_2)
+            cer_score = CER(extracted_string_1, extracted_string_2)
             return {
                 "PESQ score": pesq_score,
                 "MSE score": mse_score,
                 "STOI score": stoi_score,
-                "Spectral Overlap": "88%"
+                "WER Score": wer_score,
+                "CER Score": cer_score,
+                "Quality": quality
             }
         elif parameter == "PESQ (Perceptual Evaluation of Speech Quality)":
             pesq_score = PESQ(file1, file2)
@@ -205,16 +213,16 @@ class AudioComparerApp:
         elif parameter == "STOI (Short-Time Objective Intelligibility)":
             stoi_score = STOI(file1, file2)
             return {"STOI": stoi_score}
-        elif parameter == "WER (Word Error Rate)":
+        elif parameter == "WER (Word Error Rate), CER (Character Error Rate)":
             extracted_string_1 = extractSpeech(file1)
             extracted_string_2 = extractSpeech(file2)
             self.displayString(extracted_string_1, self.audio_detail_box_1, 1)
             self.displayString(extracted_string_2,self.audio_detail_box_2, 2)
             wer_score, quality = WER(extracted_string_1, extracted_string_2)
+            cer_score = CER(extracted_string_1, extracted_string_2)
             return {"WER Score": wer_score,
+                    "CER Score": cer_score,
                     "Quality": quality}
-        elif parameter == "CER (Character Error Rate)":
-            return {"CER":"88%"}
         else:
             return {"Error": "Unknown parameter"}
 
