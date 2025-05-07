@@ -9,6 +9,9 @@ from PESQ import PESQ
 from MSE import MSE
 from STOI import STOI
 from Details import find_details
+from extractSpeech import extractSpeech
+from WER import WER
+
 class AudioComparerApp:
     def __init__(self, root):
         self.root = root
@@ -129,17 +132,17 @@ class AudioComparerApp:
             self.displayDetails2(file2_details)
             #self.plot_waveform(self.file2, self.ax2, self.canvas2, "Waveform: File 2")
 
-    def plot_waveform(self, file_path, ax, canvas, title):
-        try:
-            y, sr = librosa.load(file_path, sr=None)
-            ax.clear()
-            librosa.display.waveshow(y, sr=sr, ax=ax, color='steelblue')
-            ax.set_title(title)
-            ax.set_xlabel("Time")
-            ax.set_ylabel("Amplitude")
-            canvas.draw()
-        except Exception as e:
-            messagebox.showerror("Error", f"Error loading audio: {e}")
+    # def plot_waveform(self, file_path, ax, canvas, title):
+    #     try:
+    #         y, sr = librosa.load(file_path, sr=None)
+    #         ax.clear()
+    #         librosa.display.waveshow(y, sr=sr, ax=ax, color='steelblue')
+    #         ax.set_title(title)
+    #         ax.set_xlabel("Time")
+    #         ax.set_ylabel("Amplitude")
+    #         canvas.draw()
+    #     except Exception as e:
+    #         messagebox.showerror("Error", f"Error loading audio: {e}")
             
     def displayDetails1(self, file_details):
         self.audio_detail_box_1.config(state='normal')
@@ -157,6 +160,13 @@ class AudioComparerApp:
         for k, v in file_details.items():
             self.audio_detail_box_2.insert(tk.END, f"{k}: {v}\n")
         self.audio_detail_box_2.config(state='disabled')
+    
+    def displayString(self, input_string, box_details, n):
+        box_details.config(state='normal')
+        box_details.delete("1.0", tk.END)
+        box_details.insert("1.0", f"Audio {n} script will appear here. It will take some time please wait:\n\n")
+        box_details.insert(tk.END, input_string)
+        box_details.config(state='disabled')
 
 
     def compare(self):
@@ -196,7 +206,13 @@ class AudioComparerApp:
             stoi_score = STOI(file1, file2)
             return {"STOI": stoi_score}
         elif parameter == "WER (Word Error Rate)":
-            return {"WER": "88%"}
+            extracted_string_1 = extractSpeech(file1)
+            extracted_string_2 = extractSpeech(file2)
+            self.displayString(extracted_string_1, self.audio_detail_box_1, 1)
+            self.displayString(extracted_string_2,self.audio_detail_box_2, 2)
+            wer_score, quality = WER(extracted_string_1, extracted_string_2)
+            return {"WER Score": wer_score,
+                    "Quality": quality}
         elif parameter == "CER (Character Error Rate)":
             return {"CER":"88%"}
         else:
