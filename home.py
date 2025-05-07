@@ -52,10 +52,13 @@ class AudioComparerApp:
         self.top_right = ttk.Frame(self.right_frame, borderwidth=1, relief="solid")
         self.top_right.grid(row=0, column=1, sticky="nsew", padx=5, pady=5)
 
-        # Add a single frame to row 1 spanning both columns
-        self.bottom = ttk.Frame(self.right_frame, borderwidth=1, relief="solid")
-        self.bottom.grid(row=1, column=0, columnspan=2, sticky="nsew", padx=5, pady=5)   # Right Frame (70%) divided into 3 rows
+        # Add tow frame to row 1 spanning both columns
+        self.bottom_left = ttk.Frame(self.right_frame, borderwidth=1, relief="solid")
+        self.bottom_left.grid(row=1, column=0, sticky="nsew", padx=5, pady=5)   # Right Frame (70%) divided into 3 rows
         
+        self.bottom_right = ttk.Frame(self.right_frame, borderwidth=1, relief="solid")
+        self.bottom_right.grid(row=1, column=1, sticky="nsew", padx=5, pady=5)   # Right Frame (70%) divided into 3 rows
+
         # self.right_frame = ttk.Frame(self.root, padding=15)
         # self.right_frame.grid(row=0, column=2, sticky="nsew")
         # self.right_frame.rowconfigure(0, weight=2)  # waveform 1 (25%)
@@ -92,6 +95,14 @@ class AudioComparerApp:
         self.result_box.grid(row=1, column=0, sticky="nsew", pady=(10, 0))
         self.result_box.insert("1.0", "Results will appear here after comparison...\n")
         self.result_box.config(state='disabled')
+
+        # Area for notes (text box)
+        self.note_box = tk.Text(self.right_frame, height=10, wrap='word', font=("Courier", 10))
+        self.note_box.grid(row=1, column=1, sticky="nsew", pady=(10, 0))
+        self.note_box.insert("1.0", "Important notes\n")
+        self.note_box.config(state='disabled')
+
+        self.displayNotes()
 
         # Left Panel Controls
         ttk.Label(self.left_frame, text="Audio File 1:", font=("Arial", 10, "bold")).pack(anchor='w', pady=(0, 5))
@@ -167,6 +178,22 @@ class AudioComparerApp:
         box_details.insert("1.0", f"Audio {n} script will appear here. It will take some time please wait:\n\n")
         box_details.insert(tk.END, input_string)
         box_details.config(state='disabled')
+
+    def displayNotes(self):
+        notes = []
+        notes.append("Max audio length 25sec")
+        notes.append("WER and CER use the Whisper AI model and may take some time to compute, so please be patient.")
+        notes.append("WER and CER use Whisper for speech extraction, which may occasionally produce incorrect output.")
+        notes.append("Audio details are shown after converting the file to a format suitable for PESQ and other metrics.")
+        self.note_box.config(state='normal')
+        self.note_box.delete("1.0",tk.END)
+        self.note_box.insert("1.0","Important instruction to use this webapp\n\n")
+        i = 1
+        for rule in notes:
+            self.note_box.insert(tk.END, f"{i}:{rule}\n")
+            i = i+1
+        self.note_box.config(state='disabled')
+        
 
 
     def compare(self):
