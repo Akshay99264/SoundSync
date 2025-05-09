@@ -12,6 +12,7 @@ from Details import find_details
 from extractSpeech import extractSpeech
 from WER_CER import WER, CER
 
+
 class AudioComparerApp:
     def __init__(self, root):
         self.root = root
@@ -111,11 +112,18 @@ class AudioComparerApp:
         self.result_box.config(state='disabled')
 
         # Area for notes (text box)
-        self.output_text = tk.Text(self.output_frame, height=10, wrap='word', font=("Courier", 10, "bold"), background="Red")
-        self.output_text.grid(row=1, column=1, sticky="nsew", pady=(10, 0))
-        self.output_text.pack(expand=True, fill='both')
-        self.output_text.insert("1.0", "Important notes\n")
-        self.output_text.config(state='disabled')
+        self.notes_text = tk.Text(self.output_frame, height=10, wrap='word', font=("Courier", 16, "bold"), background="Red")
+        self.notes_text.grid(row=1, column=0, sticky="nsew", pady=(10, 0))
+        self.notes_text.pack(expand=True, fill='both')
+        self.notes_text.insert("1.0", "Important notes\n")
+        self.notes_text.config(state='disabled')
+
+
+        #Area for details section (text box)
+        self.parameter_detail_box = tk.Text(self.right_frame, height=10, wrap='word', font=("Courier", 12, "bold"), background="pink")
+        self.parameter_detail_box.grid(row=1, column=1, sticky="nsew", pady=(10, 0))
+        self.parameter_detail_box.insert("1.0", "Important notes\n")
+        self.parameter_detail_box.config(state='disabled')
 
         self.displayNotes()
 
@@ -205,14 +213,42 @@ class AudioComparerApp:
         notes.append("WER and CER use the Whisper AI model and may take some time to compute, so please be patient.")
         notes.append("WER and CER use Whisper for speech extraction, which may occasionally produce incorrect output.")
         notes.append("Audio details are shown after converting the file to a format suitable for PESQ and other metrics.")
-        self.output_text.config(state='normal')
-        self.output_text.delete("1.0",tk.END)
-        self.output_text.insert("1.0","Important instruction to use this webapp\n\n")
+        self.notes_text.config(state='normal')
+        self.notes_text.delete("1.0",tk.END)
+        self.notes_text.insert("1.0","Important instruction to use this webapp\n\n")
         i = 1
         for rule in notes:
-            self.output_text.insert(tk.END, f"{i}:{rule}\n")
+            self.notes_text.insert(tk.END, f"{i}:{rule}\n")
             i = i+1
-        self.output_text.config(state='disabled')
+        self.notes_text.config(state='disabled')
+
+    def displayParameterDetails(self, parameter):
+        param_details = {"PESQ (Perceptual Evaluation of Speech Quality)":"Objective metric that predicts the perceived quality of speech by comparing the original and degraded audio; scores range from 1 (bad) to 4.5 (excellent).",
+            "MSE (Mean Square Error)":"Measures the average squared difference between original and processed audio signals; lower values indicate higher similarity.",
+            "STOI (Short-Time Objective Intelligibility)":"Evaluates how intelligible speech is by estimating the correlation of short-time temporal envelopes; scores range from 0 (unintelligible) to 1 (perfect intelligibility).",
+            "WER (Word Error Rate), CER (Character Error Rate)":"WER measures the percentage of incorrectly transcribed words, and CER does the same at the character level; both are used in speech recognition evaluation—lower values are better"
+        }
+        self.parameter_detail_box.config(state='normal')
+        self.parameter_detail_box.delete("1.0",tk.END)
+        self.parameter_detail_box.insert("1.0","Details of Paramter\n\n")
+        if parameter == "All":
+            i = 1
+            for k, v in param_details.items():
+                self.parameter_detail_box.insert(tk.END,f"{i}-{k}:{v}\n")
+                i = i+1
+        elif parameter == "PESQ (Perceptual Evaluation of Speech Quality)":
+            self.parameter_detail_box.insert(tk.END,f"{parameter}:{param_details[parameter]}\n")
+        elif parameter == "MSE (Mean Square Error)":
+            self.parameter_detail_box.insert(tk.END,f"{parameter}:{param_details[parameter]}\n")
+        elif parameter == "STOI (Short-Time Objective Intelligibility)":
+            self.parameter_detail_box.insert(tk.END,f"{parameter}:{param_details[parameter]}\n")
+        elif parameter == "WER (Word Error Rate), CER (Character Error Rate)":
+            self.parameter_detail_box.insert(tk.END,f"{parameter}:{param_details[parameter]}\n")
+        else:
+            self.parameter_detail_box.insert(tk.END,"Invalid paramter")
+
+        self.parameter_detail_box.config(state='disabled')
+            
         
 
 
@@ -230,13 +266,14 @@ class AudioComparerApp:
             self.result_box.insert(tk.END, f"{k}: {v}\n")
         self.result_box.config(state='disabled')
 
-    def compare_audio(self, file1, file2, parameter):  
+    def compare_audio(self, file1, file2, parameter):
+        self.displayParameterDetails(parameter)
         if parameter == "All":
             pesq_score = PESQ(file1, file2)
             mse_score = MSE(file1, file2)
             stoi_score = STOI(file1, file2)
-            extracted_string_1 = extractSpeech(file1)
-            extracted_string_2 = extractSpeech(file2)
+            extracted_string_1 , extracted_string_2 = extractSpeech(file1, file2)
+            #extracted_string_2 = extractSpeech(file2)
             self.displayString(extracted_string_1, self.audio_detail_box_1, 1)
             self.displayString(extracted_string_2,self.audio_detail_box_2, 2)
             wer_score, quality = WER(extracted_string_1, extracted_string_2)

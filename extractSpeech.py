@@ -1,10 +1,10 @@
 import whisper
 import sys
 import csv
+import gc
 from convertCSVtoSTR import convertToString
 
-def extract_words_with_timestamps(audio_path, output_csv):
-    model = whisper.load_model("small")
+def extract_words_with_timestamps(model, audio_path, output_csv):
 
     # Enable word-level timestamps
     result = model.transcribe(audio_path, word_timestamps=True)
@@ -37,6 +37,12 @@ def extract_words_with_timestamps(audio_path, output_csv):
     str_text = convertToString(output_csv)
     return str_text
 
-def extractSpeech(input_file):
-    output_file = input_file.split('.')[0] + '.csv'
-    return extract_words_with_timestamps(input_file, output_file)
+def extractSpeech(input_file1, input_file2):
+    model = whisper.load_model("small")
+    output_file1 = input_file1.split('.')[0] + '.csv'
+    output_file2 = input_file2.split('.')[0] + '.csv'
+    extracted_string_1 = extract_words_with_timestamps(model, input_file1, output_file1)
+    extracted_string_2 = extract_words_with_timestamps(model, input_file2, output_file2)
+    del model
+    gc.collect()
+    return extracted_string_1, extracted_string_2
