@@ -29,11 +29,25 @@ class AudioComparerApp:
         self.root.columnconfigure(1, weight=7)  # Right panel
         self.root.rowconfigure(0, weight=1)
 
-        # Left Frame (30%)
+        # LEFT FRAME
         self.left_frame = ttk.Frame(self.root, padding=15)
         self.left_frame.grid(row=0, column=0, sticky="nsew")
 
-     # Right Frame (already created)
+        # Configure two rows inside left_frame
+        self.left_frame.rowconfigure(0, weight=1)   # Small weight for control panel
+        self.left_frame.rowconfigure(1, weight=4)   # Larger weight for text display
+        self.left_frame.columnconfigure(0, weight=1)
+
+        # CONTROL PANEL (Top small part)
+        self.control_frame = ttk.Frame(self.left_frame)
+        self.control_frame.grid(row=0, column=0, sticky="nsew", pady=(0, 10))
+
+
+        # TEXT DISPLAY PANEL (Bottom big part)
+        self.output_frame = ttk.Frame(self.left_frame)
+        self.output_frame.grid(row=1, column=0, sticky="nsew")
+
+        # Right Frame (already created)
         self.right_frame = ttk.Frame(self.root, padding=15)
         self.right_frame.grid(row=0, column=2, sticky="nsew")
 
@@ -97,27 +111,33 @@ class AudioComparerApp:
         self.result_box.config(state='disabled')
 
         # Area for notes (text box)
-        self.note_box = tk.Text(self.right_frame, height=10, wrap='word', font=("Courier", 10))
-        self.note_box.grid(row=1, column=1, sticky="nsew", pady=(10, 0))
-        self.note_box.insert("1.0", "Important notes\n")
-        self.note_box.config(state='disabled')
+        self.output_text = tk.Text(self.output_frame, height=10, wrap='word', font=("Courier", 10, "bold"), background="Red")
+        self.output_text.grid(row=1, column=1, sticky="nsew", pady=(10, 0))
+        self.output_text.pack(expand=True, fill='both')
+        self.output_text.insert("1.0", "Important notes\n")
+        self.output_text.config(state='disabled')
 
         self.displayNotes()
 
-        # Left Panel Controls
-        ttk.Label(self.left_frame, text="Audio File 1:", font=("Arial", 10, "bold")).pack(anchor='w', pady=(0, 5))
-        ttk.Button(self.left_frame, text="Browse File 1", command=self.load_file1).pack(fill='x', pady=5)
+        ttk.Label(self.control_frame, text="Audio File 1:", font=("Arial", 10, "bold")).pack(anchor='w', pady=(0, 5))
+        ttk.Button(self.control_frame, text="Browse File 1", command=self.load_file1).pack(fill='x', pady=5)
 
-        ttk.Label(self.left_frame, text="Audio File 2:", font=("Arial", 10, "bold")).pack(anchor='w', pady=(15, 5))
-        ttk.Button(self.left_frame, text="Browse File 2", command=self.load_file2).pack(fill='x', pady=5)
+        ttk.Label(self.control_frame, text="Audio File 2:", font=("Arial", 10, "bold")).pack(anchor='w', pady=(15, 5))
+        ttk.Button(self.control_frame, text="Browse File 2", command=self.load_file2).pack(fill='x', pady=5)
 
-        ttk.Label(self.left_frame, text="Select Parameter:", font=("Arial", 10, "bold")).pack(anchor='w', pady=(20, 5))
-        self.parameters = ["All", "PESQ (Perceptual Evaluation of Speech Quality)", "MSE (Mean Square Error)", "STOI (Short-Time Objective Intelligibility)", "WER (Word Error Rate), CER (Character Error Rate)"]
+        ttk.Label(self.control_frame, text="Select Parameter:", font=("Arial", 10, "bold")).pack(anchor='w', pady=(20, 5))
+        self.parameters = [
+            "All",
+            "PESQ (Perceptual Evaluation of Speech Quality)",
+            "MSE (Mean Square Error)",
+            "STOI (Short-Time Objective Intelligibility)",
+            "WER (Word Error Rate), CER (Character Error Rate)"
+        ]
         self.selected_param = tk.StringVar(value=self.parameters[0])
-        self.dropdown = ttk.Combobox(self.left_frame, values=self.parameters, textvariable=self.selected_param, state="readonly")
+        self.dropdown = ttk.Combobox(self.control_frame, values=self.parameters, textvariable=self.selected_param, state="readonly", width=30)
         self.dropdown.pack(fill='x', pady=5)
 
-        ttk.Button(self.left_frame, text="Compare", command=self.compare).pack(fill='x', pady=(30, 5))
+        ttk.Button(self.control_frame, text="Compare", command=self.compare).pack(fill='x', pady=(30, 5))
 
     def load_file1(self):
         self.file1 = filedialog.askopenfilename(
@@ -185,14 +205,14 @@ class AudioComparerApp:
         notes.append("WER and CER use the Whisper AI model and may take some time to compute, so please be patient.")
         notes.append("WER and CER use Whisper for speech extraction, which may occasionally produce incorrect output.")
         notes.append("Audio details are shown after converting the file to a format suitable for PESQ and other metrics.")
-        self.note_box.config(state='normal')
-        self.note_box.delete("1.0",tk.END)
-        self.note_box.insert("1.0","Important instruction to use this webapp\n\n")
+        self.output_text.config(state='normal')
+        self.output_text.delete("1.0",tk.END)
+        self.output_text.insert("1.0","Important instruction to use this webapp\n\n")
         i = 1
         for rule in notes:
-            self.note_box.insert(tk.END, f"{i}:{rule}\n")
+            self.output_text.insert(tk.END, f"{i}:{rule}\n")
             i = i+1
-        self.note_box.config(state='disabled')
+        self.output_text.config(state='disabled')
         
 
 
