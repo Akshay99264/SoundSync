@@ -1,0 +1,15 @@
+python>=3.8
+openai-whisper
+torch
+numpy
+librosa
+matplotlib
+scipy
+pesq
+ffmpeg-python
+pydub
+pystoi
+soundfile
+jiwer
+tkinter  # This can be excluded if you’re using Python 3 as it's built-in
+
